@@ -12,7 +12,16 @@ The file, Set_8.csv, contains the data from a follow-up to the job search study.
 7. How well are cases in the cross-validation sample classified?
 8. Based on the analysis, what advice would you give to a student thinking about a career in academia?
 
-
+\documentclass{article}
+\setlength\parindent{0pt}
+\usepackage{fullpage}
+\setlength\parindent{24pt}
+\begin{document}
+\title{Homework 10\\ Psych 516}
+\author{Ying-Ting Lin}
+\date{11/9/15}
+\maketitle
+<<>>=
 Data <- read.table('C:/Users/Claire/Documents/Applied Multivariate Analysis/Homework10/Set_8.csv', sep=',',header=TRUE)
 library(psych)
 library(cluster)
@@ -27,13 +36,29 @@ library(ade4)
 library(biotools)
 library(klaR)
 library(boot)
+@
 
-Data1 <- Data[Data$sample ==1,]
+\section{How many discriminant functions are significant?}
+We split the data into two samples, and keep our focus on the first sample for now. The maximum number of discriminant functions is the smaller of number of variables or number of groups. In this case, the number of variables is three, and the number of group (outcome) is also three. We can have  at most two discriminant functions. Both discriminant functions are significant.
+
+\section{Comment on their relative “importance.”}
+The first discriminant function is far more important. The table of canonical discriminant analysis shows us the eigenvalue for each discriminant function. The proportion of discrimination that is explained by each function is its eigenvalue divided by the sum of both functions' eigenvalues. Equivalently, we can directly check the "Percent" column in the table. The first function accounts for about 98 percent of the discrimination, while the second only 2 percent.
+
+\section{3. How would you interpret the(se) function(s)?}
+From the standardized coefficient table, the first function has a positively weighted by publication years and negatively weighted by completion years and GRE scores. 
+Publication numbers and length of Ph.D. study weights positively in similiar magnitude on the second function.\\ 
+\indent
+From the structure matrix, we find that GRE's correlations with both functions are very low in magnitude. The first function is high when number of publications is high and when length of Ph.D. study is low.The second function is positively correlated with both publication numbers and length of Ph.D. study.\\ 
+\indent
+Hence, the first function is high if the observation has high publication numbers and short Ph.D. completion time. From the box plot, we infer that the first function may separate outcome 2 and 3 from outcome 1. The second function is high when both publication number and completion length are high. Again, from the box plot, we guess that the second function may separate outcome 3 from outcome 2. 
+
+<<>>=
 par(mfrow = c(1,1))
 boxplot(Data1$gre~Data1$outcome, horizontal = TRUE, main = list("GRE"),xlab = list("Value"), ylab = list("Group") )
 boxplot(Data1$pubs ~ Data1$outcome, horizontal = TRUE, main = list("Publication Numbers"),xlab = list("Value"), ylab = list("Group") )
 boxplot(Data1$years ~ Data1$outcome, horizontal = TRUE, main = list("Years"),xlab = list("Value"), ylab = list("Group") )
 
+Data1 <- Data[Data$sample ==1,]
 LDA1 <- lda(outcome ~ gre + pubs + years, data = Data1)
 MLM1 <- lm(cbind(gre, pubs, years)~ as.factor(outcome), data = Data1)
 CDA1 <- candisc(MLM1, data = Data1)
@@ -42,42 +67,26 @@ CDA1$coeffs.std  #weight, based on standardized variables
 CDA1$structure   #correlation b/w each variable and each function
 
 CDA1
+@
 
-linDA <-linDA(Data1[, 1:3], Data1[,4], prior = NULL, validation = NULL, learn = NULL, test = NULL, prob = FALSE)
-linDA$confusion
-linDA$error_rate
-T <- linDA$confusion #confusion matrix
-MO1 <- sum(T[1,])
-MO2 <- sum(T[2,])
-MO3 <- sum(T[3,])
-MP1 <- MO1
-MP2 <- MO2
-MP3 <- MO3
-N <- sum(T)
-O <- sum(diag(T)) #observed agreement 
-E <- (MO1*MP1/N) + (MO2*MP2/N) + (MO3*MP3/N) #expected agreement
+\section{4. How well are the original cases classified?}
+The error rate (i.e., percentage of misclassification) is 0.16.
+\subsection{Calculate a significance test that compares the classification to what would be
+expected by chance.}
+We calculate the t test. The t statistics is 15.09. 
+\subsection{Calculate Klecka's tau.}
+Klecka's tau equals 0.74.
 
-#Calculate t test
-e <- E/N
-t = (O - E)/sqrt(N*e*(1-e)) #t test
-t
+<<>>=
 
-#Calculate Klecka’s tau
-Tau <- (O-E)/(N-E)
-Tau
+#homogeneity and multivariate normality fails --> bootstrapping method
+boxM(Data1[, 1:3], Data1$outcome)
+shapiro.test(Data1$gre)
+shapiro.test(Data1$pubs)
+shapiro.test(Data1$years)
+mardiaTest(Data[,1:3], cov = TRUE, qqplot = FALSE)
+hzTest(Data[,1:3], cov = TRUE, qqplot = FALSE)
 
-Jack1 <- lda(outcome ~ gre + pubs + years, data = Data1, CV = TRUE)
-table(Original = Data1$outcome, Predicted = Jack1$class)
-Proportion_of_Correct_classification <- sum(diag(table(Original = Data1$outcome, Predicted = Jack1$class)))/sum(table(Original = Data1$outcome, Predicted = Jack1$class))
-Proportion_of_Correct_classification
+@
 
-training_sample <- which(Data$sample ==1)
-Data_train <-lda(outcome ~ gre + pubs + years, data = Data1, CV = FALSE, subset = training_sample)
-Predict <- predict(Data_train, newdata = Data[-training_sample,])
-Original <- as.data.frame(Data[-training_sample, 4])
-Cross <- cbind(Original, Predict$class)
-names(Cross) <- c("Original_Outcome", "Predicted_Outcome")
-table(Original = Cross$Original_Outcome, Predicted = Cross$Predicted_Outcome)
-
-Proportion_of_Correct_classification <- sum(diag(table(Original = Cross$Original_Outcome, Predicted = Cross$Predicted_Outcome)))/sum(table(Original = Cross$Original_Outcome, Predicted = Cross$Predicted_Outcome))
-Proportion_of_Correct_classification
+\end{document}
