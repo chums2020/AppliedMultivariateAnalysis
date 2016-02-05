@@ -1,0 +1,108 @@
+I’ve just obtained a zoo! Well, at least all of the animals from a zoo; the land was lost because of failure to pay property taxes and the owner decided to get out of the zoo business. I’ve always wanted to own a zoo, but I don’t know beans about it. My first job is to organize the creatures in some sensible way so that the staff can care for them easily and visitors can find what they want to see without too much random walking around.
+The file, Set_6.csv, contains one animal per row. The columns are 20 different features that define the animals. All are self-explanatory except the last one (catsize). This is an indicator of whether the animal is smaller than a typical housecat or larger than a typical housecat. All variables are binary with 0 indicating the absence of the feature (e.g., does not produce milk) and 1 indicating the presence of the feature (e.g., has fins).
+How many sections or major areas do I need to build in my zoo so that I can house similar animals together?
+Use each of the hierarchical clustering procedures described in class (single linkage, complete linkage, average linkage, centroid method, Ward’s method) and arrive at a recommendation about the number of basic animal categories I have. Be sure to justify your recommendation.
+
+\documentclass{article}
+\setlength\parindent{0pt}
+\usepackage{fullpage}
+\setlength\parindent{24pt}
+\begin{document}
+\title{Homework 8 \\ Psych 516}
+\author{Ying-Ting Lin}
+\date{11/2/15}
+\maketitle
+
+<<>>=
+Data <- read.table('C:/Users/Claire/Documents/Applied Multivariate Analysis/Homework8/Set_6.csv', sep=',',header=TRUE)
+library(psych)
+library(cluster)
+myData <- dist(Data, method = "binary")
+@
+We set the preliminary number of clusters to 10 to help us see how each cluser would look like. From the above graphs, we notice that all methods except for Ward's method would result in clusters that differ greatly in size. In other words, some clusters are so large that they include the majority of animals, while other clusters are so small that they may include only one or two animals. In contrast, Ward's method results in a collection of clusters that are similar in sizes. Note that even if we vary the number of clusters a bit, such differences between different methods do not vanish. Since our goal is to help staff and visitors find the animals they want more easily, Ward's method provides the best solution in this situation. \\
+
+\section{Single linkage} 
+<<>>=
+hc_1 <- hclust(myData, method = "single")
+plot(hc_1, cex = 0.8, col = "blue", xlab = list("Data_Dist Object"), ylab = list("Height"), main = list("Cluster Dendogram"))
+rect.hclust(hc_1, k = 10, border = "red")
+@
+
+\section{Complete linkage} 
+<<>>=
+
+hc_2 <- hclust(myData, method = "complete")
+plot(hc_2, cex = 0.8, col = "blue", xlab = list("Data_Dist Object"), ylab = list("Height"), main = list("Cluster Dendogram"))
+rect.hclust(hc_2, k = 10, border = "red")
+@
+
+\section{Average linkage}
+<<>>=
+
+hc_3 <- hclust(myData, method = "average")
+plot(hc_3, cex = 0.8, col = "blue", xlab = list("Data_Dist Object"), ylab = list("Height"), main = list("Cluster Dendogram"))
+rect.hclust(hc_3, k = 10, border = "red")
+@
+
+\section{Centroid method}
+<<>>=
+
+hc_4 <- hclust(myData, method = "centroid")
+plot(hc_4, cex = 0.8, col = "blue", xlab = list("Data_Dist Object"), ylab = list("Height"), main = list("Cluster Dendogram"))
+rect.hclust(hc_4, k = 10, border = "red")
+@
+
+\section{Ward's method}
+<<>>=
+hc_5 <- hclust(myData, method = "ward.D")
+plot(hc_5, cex = 0.8, col = "blue", xlab = list("Data_Dist Object"), ylab = list("Height"), main = list("Cluster Dendogram"))
+rect.hclust(hc_5, k = 10, border = "red")
+@
+\section{Number of Clusters}
+Below we will see how clusters would look like if we vary the number of clusters from 8 to 12. When number of clusters is set to 8, we produce one cluster that might be too large.And when we set number equals 12, there is a cluster that includes only two observations. In conclusion, we would recommend the number of clusters to be set at 9, 10, or 11.
+<<>>=
+plot(hc_5, cex = 0.8, col = "blue", xlab = list("Data_Dist Object"), ylab = list("Height"), main = list("Cluster Dendogram"))
+rect.hclust(hc_5, k =8, border = "red")
+plot(hc_5, cex = 0.8, col = "blue", xlab = list("Data_Dist Object"), ylab = list("Height"), main = list("Cluster Dendogram"))
+rect.hclust(hc_5, k = 9, border = "red")
+plot(hc_5, cex = 0.8, col = "blue", xlab = list("Data_Dist Object"), ylab = list("Height"), main = list("Cluster Dendogram"))
+rect.hclust(hc_5, k = 10, border = "red")
+plot(hc_5, cex = 0.8, col = "blue", xlab = list("Data_Dist Object"), ylab = list("Height"), main = list("Cluster Dendogram"))
+rect.hclust(hc_5, k = 11, border = "red")
+plot(hc_5, cex = 0.8, col = "blue", xlab = list("Data_Dist Object"), ylab = list("Height"), main = list("Cluster Dendogram"))
+rect.hclust(hc_5, k = 12, border = "red")
+@
+
+\section{}
+Now, we set the number of clusters equal to 9, and calculate the group means in each category to see what each group might represent. \\
+\indent
+Cluster 4 is the only group of animals that have feathers. Since it also has group means equal or close to 1 in eggs, airborne, backbone, breathe, two legs, we can infer that Cluster 4 is likely to be birds.\\
+\indent
+Cluster 3 and Cluster 6 are the only groups that have fins. Both clusters also have means of aquatic equal to 1. With Cluster 6 scores high on predator and cat size and low on eggs, we infer that Cluster 6 could be sea mammals and Cluster 3 be fish. \\
+\indent
+Cluster 7 scores high on six legs, breathes, eggs and low on catsize, domestic, tail, milk, etc. We can infer that Cluster 7 might represent insects.\\
+\indent
+Cluster 1 scores high on hair, milk, predator, toothed, backbone, breathes, four legs, tail, and cat size. They could be mammel predators such as lions, tigers, etc.\\
+\indent
+Cluster 2 is high on hair, milk, toothed, backbone, breathes, four legs, and tail. Compared with Cluster 1, Cluster 2 scores higher on domestic and lower on cat size and zero on predator. Thus, Cluster 2 is likely to be smaller, domestic mammel like dogs.\\
+\indent
+Cluster 5 is high on eggs, aquatic, predator, but is zero on toothed, backbone, breathes, fins and tail. These could be marine invertebrate such as crabs. 
+\\
+\indent
+Cluster 8 scores high on eggs, predator, toothed, backbone, breathes, four legs, tail. They could be amphibia such as frogs.
+
+
+<<>>=
+#assign category numbers to each object based on Ward's method
+#calculate the proportion of the members in each category that possess each feature
+#Eg, what proportion of each category have fins
+#identify the basic nature of the animals in the categories
+wards_cluster <- as.data.frame(cutree(hc_5 , k =9))
+names(wards_cluster) <- c("Cluster_wards")
+myData_new <- as.data.frame(cbind(Data, wards_cluster))
+options(digits=2)
+aggregate(myData_new[,1:20], list(myData_new$Cluster_wards), mean)
+
+@
+
+\end{document}
