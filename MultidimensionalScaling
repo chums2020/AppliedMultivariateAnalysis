@@ -1,0 +1,214 @@
+Listed below are 15 values that are commonly viewed as important guides to everyday behavior.
+For this homework you will determine your multidimensional space for these values and also
+examine how susceptible the procedure is to capitalizing on chance.
+1. Broad-minded (tolerant of different ideas and beliefs)
+2. Loyal (faithful to my friends, group)
+3. Honest (genuine, sincere)
+4. Responsible (dependable, reliable)
+5. Forgiving (willing to pardon others)
+6. Humble (modest, self-effacing)
+7. Self‐discipline (self-restraint, resistance to temptation)
+8. Politeness (courtesy, good manners)
+9. Wealth (material possessions, money)
+10. Authority (the right to lead or command)
+11. Ambitious (hardworking, aspiring)
+12. Pleasure (gratification of desires)
+13. Creativity (uniqueness, imagination)
+14. Independent (self-reliant, self-sufficient)
+15. Curious (interested in everything, exploring)
+1. First construct a 15 x 15 dissimilarity matrix for these values by rank ordering all possible
+pairs from most similar (1) to least similar (105).
+2. Now construct a 15 x 15 random dissimilarity matrix by randomly assigning the ranks 1
+through 105 to the pairs of values.
+3. Conduct a multidimensional scaling of your personal value matrix.
+(a) Plot the stress values for 1, 2, 3, and 4 dimensional models.
+(b) Provide the Shepard plots for those models.
+(c) How many dimensions do you think are necessary to adequately describe your value
+space?
+(d) Plot the values in the dimensional space you have selected.
+(e) As best you can, name the dimensions.
+4. Now repeat the analyses from Step 3, but with the randomly generated dissimilarity
+matrix. At each step, comment on what features of the analysis might hint that the data
+are nothing but noise.
+
+\documentclass{article}
+\setlength\parindent{0pt}
+\usepackage{fullpage}
+\setlength\parindent{24pt}
+\begin{document}
+\title{Homework 7 \\ Psych 516}
+\author{Ying-Ting Lin}
+\date{10/19/15}
+\maketitle
+
+<<>>=
+library(psych)
+library(smacof)
+library(vegan)
+library(MASS)
+library(stats)
+library(pracma)
+@
+The distances are ordinal in this case. We will use the direct non-metric method in our analysis.
+
+\section{}
+<<>>=
+Data <- read.table('C:/Users/Claire/Documents/Applied Multivariate Analysis/Homework7/Data.csv', sep=',',header=TRUE)
+names <- as.vector(Data[,1])
+matrix <- as.matrix(Data[, 2:ncol(Data)])
+myData <-as.dist(matrix)
+myData
+@
+
+\section{}
+<<>>=
+list<- c(1:105)
+r = randsample(list, 105, replacement = FALSE)
+r
+
+m <- matrix(NA, nrow = 15, ncol = 15)
+m[1,1] <- 0
+for (i in 2:15) {
+  for (j in 1:i-1) {
+      m[i, i] <- 0
+      m[i, j] <- r[j]
+  }
+  r <- r[-c(1:i-1)]
+}
+m
+myData2 <-as.dist(m)
+myData2 
+@
+
+\section{ }
+\subsection{Part (a): Stress plot}
+<<>>=
+mds_stress <- matrix(NA, nrow = 8, ncol = 2)
+for (i in 1:8) {
+  mds <- smacofSym(myData, ndim = i, verbose = FALSE, type = "ordinal")
+  mds_stress[i,1] <- i
+  mds_stress[i,2] <- mds$stress
+}
+plot(mds_stress[,1], mds_stress[,2], type = "b", main = "Stress Plot", xlab = list("No. of Dimensions", cex = 1.25), ylab = list("Stress", cex = 1.25), pch = 16)
+
+@
+
+\subsection{Part (b): Shepard Plot}
+<<>>=
+par(mfrow = c(1,1))
+mds <- isoMDS(myData, k=1)
+stressplot(mds, myData, pch = 16)
+mds <- isoMDS(myData, k=2)
+stressplot(mds, myData, pch = 16)
+mds <- isoMDS(myData, k=3)
+stressplot(mds, myData, pch = 16)
+mds <- isoMDS(myData, k=4)
+stressplot(mds, myData, pch = 16)
+
+@
+
+
+\subsection{Part (c) \& Part (d):}
+From the above stress plots and Shepard plots, it is necessary to extract 4 dimensions. We will plot the values in such dimensional space.
+<<>>=
+par(mfrow = c(1,1))
+mds_4<- smacofSym(myData, ndim = 4, verbose = FALSE, type = "ordinal")
+
+plot(mds_4$conf[, 1], mds_4$conf[,2], type = "n", xlab = "Dimension 1", ylab = "Dimension 2", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_4$conf[,1], mds_4$conf[, 2], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_4$conf[, 1], mds_4$conf[,3], type = "n", xlab = "Dimension 1", ylab = "Dimension 3", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_4$conf[,1], mds_4$conf[, 3], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_4$conf[, 1], mds_4$conf[,4], type = "n", xlab = "Dimension 1", ylab = "Dimension 4", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_4$conf[,1], mds_4$conf[, 4], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_4$conf[, 2], mds_4$conf[,3], type = "n", xlab = "Dimension 2", ylab = "Dimension 3", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_4$conf[,2], mds_4$conf[, 3], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_4$conf[, 2], mds_4$conf[,4], type = "n", xlab = "Dimension 2", ylab = "Dimension 4", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_4$conf[,2], mds_4$conf[, 4], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_4$conf[, 3], mds_4$conf[,4], type = "n", xlab = "Dimension 3", ylab = "Dimension 4", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_4$conf[,3], mds_4$conf[, 4], labels(myData), cex = 1, xpd = TRUE)
+@
+\subsection{Part (e): }
+From the above dimension plots, Dimension 1  may represent conscientious. High on this dimension is associated with responsible, ambitious, authority, etc., while low on this dimension is associated with pleasure, broad-mided, humble. \\
+Dimension 2  may represents extraversion. Being high on this dimension means being more outgoing, while being low means more reserved.  \\
+Dimension 3 might be interpreted as openness, although there are some more neutral characteristics ranked rather high on this dimension, such as politeness and independent. \\
+Dimension 4 might be interpreted as agreeableness, but the lowest on this dimension are honest, creativity, and curious, which should be considered as more neutral compared with others such as ambitious, authority, and self-discipline.
+
+
+\section{}
+\subsection{Part (a): Stress plot}
+<<>>=
+mds_stress <- matrix(NA, nrow = 8, ncol = 2)
+for (i in 1:8) {
+  mds <- smacofSym(myData2, ndim = i, verbose = FALSE, type = "ordinal")
+  mds_stress[i,1] <- i
+  mds_stress[i,2] <- mds$stress
+}
+plot(mds_stress[,1], mds_stress[,2], type = "b", main = "Stress Plot", xlab = list("No. of Dimensions", cex = 1.25), ylab = list("Stress", cex = 1.25), pch = 16)
+
+@
+
+\subsection{Part (b): Shepard Plot}
+<<>>=
+par(mfrow = c(1,1))
+mds <- isoMDS(myData2, k=1)
+stressplot(mds, myData2, pch = 16)
+mds <- isoMDS(myData2, k=2)
+stressplot(mds, myData2, pch = 16)
+mds <- isoMDS(myData2, k=3)
+stressplot(mds, myData2, pch = 16)
+mds <- isoMDS(myData2, k=4)
+stressplot(mds, myData2, pch = 16)
+mds <- isoMDS(myData2, k=5)
+stressplot(mds, myData2, pch = 16)
+@
+Compared with the non-random case, the stress value decreases more slowly as we include more dimensions. The shepartd plots also suggest that the fit is worse than that in the non-random case.
+
+
+\subsection{Part (c) \& Part (d):}
+From the above stress plots and Shepard plots, it is necessary to extract 5 dimensions. We will plot the values in such dimensional space.
+<<>>=
+par(mfrow = c(1,1))
+mds_5<- smacofSym(myData2, ndim = 5, verbose = FALSE, type = "ordinal")
+
+plot(mds_5$conf[, 1], mds_5$conf[,2], type = "n", xlab = "Dimension 1", ylab = "Dimension 2", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_5$conf[,1], mds_5$conf[, 2], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_5$conf[, 1], mds_5$conf[,3], type = "n", xlab = "Dimension 1", ylab = "Dimension 3", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_5$conf[,1], mds_5$conf[, 3], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_5$conf[, 1], mds_5$conf[,4], type = "n", xlab = "Dimension 1", ylab = "Dimension 4", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_5$conf[,1], mds_5$conf[, 4], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_5$conf[, 1], mds_5$conf[,5], type = "n", xlab = "Dimension 1", ylab = "Dimension 5", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_5$conf[,1], mds_5$conf[, 5], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_5$conf[, 2], mds_5$conf[,3], type = "n", xlab = "Dimension 2", ylab = "Dimension 3", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_5$conf[,2], mds_5$conf[, 3], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_5$conf[, 2], mds_5$conf[,4], type = "n", xlab = "Dimension 2", ylab = "Dimension 4", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_5$conf[,2], mds_5$conf[, 4], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_5$conf[, 2], mds_5$conf[,5], type = "n", xlab = "Dimension 2", ylab = "Dimension 5", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_5$conf[,2], mds_5$conf[, 5], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_5$conf[, 3], mds_5$conf[,4], type = "n", xlab = "Dimension 3", ylab = "Dimension 4", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_5$conf[,3], mds_5$conf[, 4], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_5$conf[, 3], mds_5$conf[,5], type = "n", xlab = "Dimension 3", ylab = "Dimension 5", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_5$conf[,3], mds_5$conf[, 5], labels(myData), cex = 1, xpd = TRUE)
+
+plot(mds_5$conf[, 4], mds_5$conf[,5], type = "n", xlab = "Dimension 4", ylab = "Dimension 5", axes = TRUE, main = "Four Dimensions",cex = 1.5)
+text(mds_5$conf[,4], mds_5$conf[, 5], labels(myData), cex = 1, xpd = TRUE)
+@
+\subsection{Part (e):}
+In dimension 1, we have creativity, self-discipline, and wealth being very low, and a bunch of other characteristics very high. We cannot conclude with any underlying dimension.\\
+In dimension 2, we have forgiving, creativity, broad-minded very high, which might be broadly characterized as openness. But lower on the dimension, the meaning of the dimension seems to be lost. For example, authority and loyal should be the lowest on the dimension, but the lowest are more neutral characteristics such as wealth and responsible. \\
+Dimension 3, 4, 5 don't seem to have an easy interpretation either. \\
+Looking at all the dimension plots, we cannot find convincing interpretation of the dimensions, which hints that the distance matrix might be generated from random.\\
+\end{document}
+
