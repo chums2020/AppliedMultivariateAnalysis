@@ -4,7 +4,16 @@ The file, Set_9.csv, contains data from a hypothetical sample of Ph.D. job seeke
 3. Now add the remaining two-way interactions. If any are significant, provide surface plots showing the relationship between the predictors (over their ranges) and the probability of getting an interview.
 4. Finally, add to the basic model from Question 1, terms that test the quadratic effects of each continuous predictor. If any are significant, construct graphs showing the relationship between the predictor and the probability of getting an interview. Hold non-graphed variables constant at their grand means and graph over the range of the target predictor.
 
-
+\documentclass{article}
+\setlength\parindent{0pt}
+\usepackage{fullpage}
+\setlength\parindent{24pt}
+\begin{document}
+\title{Homework 11\\ Psych 516}
+\author{Ying-Ting Lin}
+\date{11/16/15}
+\maketitle
+<<>>=
 Job <- read.table('C:/Users/Claire/Documents/Applied Multivariate Analysis/Homework11/Set_9.csv', sep=',',header=TRUE)
 library(psych)
 library(cluster)
@@ -22,11 +31,19 @@ library(car)
 library(LogisticDx)
 library(lattice)
 library(latticeExtra)
+@
 
+\section{}
+
+The summary of the binary logistic regression shows that only publications and years are significant.
+<<>>=
 #Multiple Predictor Model
 Job_BLR_5 <- glm(Job$interview~ gre + pubs + years + sex,  family=binomial("logit"), data = Job)
 summary(Job_BLR_5)
 
+@
+
+<<>>=
 plot_data <- with(Job,data.frame(gre=mean(gre),
                  years=mean(years),sex=mean(sex),
                  pubs=seq(from=0,to=10,by=1)))
@@ -36,8 +53,11 @@ plot(plot_data$pubs,plot_data$P,type="b",main=list("Predicted Probability of Get
      xlab=list("Publications",cex=1.25),ylim=c(0,1),font.axis=2,font.lab=2,font.main=4,
      ylab=list("Probability of Getting a Job",cex=1.25),
      pch=16,col="blue")
-     
-     plot_data <- with(Job,data.frame(gre=mean(gre),
+
+@ 
+
+<<>>=
+plot_data <- with(Job,data.frame(gre=mean(gre),
                  years=seq(from=4,to=14,by=1),sex=mean(sex),
                  pubs=mean(pubs)))
 plot_data$P <- predict(Job_BLR_5,newdata=plot_data,type="response")
@@ -46,10 +66,16 @@ plot(plot_data$years,plot_data$P,type="b",main=list("Predicted Probability of Ge
      ylab=list("Probability of Getting a Job",cex=1.25),
      pch=16,col="blue")
 
+@
+\section{}
+Still, only publication and years are significant. 
+<<>>=
 Job_BLR_6 <- glm(Job$interview~ gre + pubs + years + sex +
                    sex:gre + sex:pubs + sex:years,  family=binomial("logit"), data = Job)
 summary(Job_BLR_6)
+@
 
+<<>>=
 plot_data_men <- with(Job,data.frame(gre=mean(gre),
                  years=mean(years),sex=1,
                  pubs=seq(from=0,to=10,by=1)))
@@ -73,7 +99,9 @@ b <- xyplot(plot_data_women$P~plot_data_women$pubs,type="b",lty=1,
        ylab=list(" ",cex=1.5),
        pch=16, lwd=2,col="red",cex=1.5)
 a + as.layer(b)
+@
 
+<<>>=
 plot_data_men <- with(Job,data.frame(gre=mean(gre),
                  pubs=mean(pubs),sex=1,
                  years=seq(from=4,to=14,by=1)))
@@ -98,11 +126,18 @@ b <- xyplot(plot_data_women$P~plot_data_women$years,type="b",lty=1,
        pch=16, lwd=2,col="red",cex=1.5)
 a + as.layer(b)
 
+@
+\section{}
+
+Only the interaction between publications and years are significant.
+<<>>=
 Job_BLR_7 <- glm(Job$interview~ gre + pubs + years + sex +
                    sex:gre + sex:pubs + sex:years+
                    pubs:gre + pubs:years + gre:years,  family=binomial("logit"), data = Job)
 summary(Job_BLR_7)
+@
 
+<<>>=
 plot_data <- with(Job,data.frame(gre=mean(gre),
                  sex=mean(sex), years= years,
                  pubs=pubs))
@@ -115,10 +150,18 @@ wireframe(P ~ pubs*years, data = plot_data,  scales = list(arrows=FALSE,cex= 1, 
         main="Probability of Getting a Job",drape = TRUE,
   colorkey = TRUE)
 
+@
+
+\section{}
+
+Publications, years, and their corresponding quadratic terms are significant.The quadratic model predicts that number of publications has a surprisingly negative relationship with the probability of getting a job, once the number of publications exceeds 7, holding all other variables at their means. In contrast, the number of publications is always positively related to the probablity of getting a job in the linear model. Similarly, years to finish degree turns to be positively related to the probablity of getting a job, once the years go beyond 11. 
+<<>>=
 Job_BLR_8 <- glm(Job$interview~ gre + pubs + years + sex +
                    I(gre^2) + I(pubs^2) + I(years^2),  family=binomial("logit"), data = Job)
 summary(Job_BLR_8)
+@
 
+<<>>=
 plot_data_linear <- with(Job,data.frame(gre=mean(gre),
                  years=mean(years),sex=mean(sex),
                  pubs=seq(from=0,to=10,by=1)))
@@ -142,6 +185,9 @@ b <- xyplot(plot_data_quad$P~plot_data_quad$pubs,type="b",lty=1,
        ylab=list(" ",cex=1.5),
        pch=16, lwd=2,col="red",cex=1.5)
 a + as.layer(b)
+@
+
+<<>>=
 plot_data_linear <- with(Job,data.frame(gre=mean(gre),
                  pubs=mean(pubs),sex=mean(sex),
                  years=seq(from=4,to=14,by=1)))
@@ -165,3 +211,5 @@ b <- xyplot(plot_data_quad$P~plot_data_quad$years,type="b",lty=1,
        ylab=list(" ",cex=1.5),
        pch=16, lwd=2,col="red",cex=1.5)
 a + as.layer(b)
+@
+\end{document}
