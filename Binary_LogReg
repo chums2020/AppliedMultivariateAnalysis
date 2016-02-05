@@ -1,0 +1,167 @@
+The file, Set_9.csv, contains data from a hypothetical sample of Ph.D. job seekers. For each individual in the sample, the file contains a GRE (V+Q) score, the number of publications while in graduate school, the years needed to complete the Ph.D., and the applicant’s sex (0=women, 1=men). The outcome variable is whether or not the applicant was invited for at least one interview (0=no, 1=yes). Use binary logistic regression to answer the following questions.
+1. Test a model that includes sex, publications, years to complete degree, and GRE score as predictors. For each significant predictor, construct a graph that shows the relationship between that predictor (over its range) and the probability of getting an interview. When constructing graphs, hold non-graphed variables constant at their grand means.
+2. Test a model that includes all two-way interactions involving sex of applicant. For any significant interaction, construct a graph that shows the relationship between the relevant predictor and the probability of getting an interview, separately for men and women. Hold non-graphed variables constant at their grand means and graph over the range of the target predictor.
+3. Now add the remaining two-way interactions. If any are significant, provide surface plots showing the relationship between the predictors (over their ranges) and the probability of getting an interview.
+4. Finally, add to the basic model from Question 1, terms that test the quadratic effects of each continuous predictor. If any are significant, construct graphs showing the relationship between the predictor and the probability of getting an interview. Hold non-graphed variables constant at their grand means and graph over the range of the target predictor.
+
+
+Job <- read.table('C:/Users/Claire/Documents/Applied Multivariate Analysis/Homework11/Set_9.csv', sep=',',header=TRUE)
+library(psych)
+library(cluster)
+library(sciplot)
+library(ggplot2)
+library(DiscriMiner)
+library(candisc)
+library(sciplot)
+library(MASS)
+library(MVN)
+library(ade4)
+library(biotools)
+library(klaR)
+library(car)
+library(LogisticDx)
+library(lattice)
+library(latticeExtra)
+
+#Multiple Predictor Model
+Job_BLR_5 <- glm(Job$interview~ gre + pubs + years + sex,  family=binomial("logit"), data = Job)
+summary(Job_BLR_5)
+
+plot_data <- with(Job,data.frame(gre=mean(gre),
+                 years=mean(years),sex=mean(sex),
+                 pubs=seq(from=0,to=10,by=1)))
+plot_data$P <- predict(Job_BLR_5,newdata=plot_data,type="response")
+
+plot(plot_data$pubs,plot_data$P,type="b",main=list("Predicted Probability of Getting a Job",cex=1.5),
+     xlab=list("Publications",cex=1.25),ylim=c(0,1),font.axis=2,font.lab=2,font.main=4,
+     ylab=list("Probability of Getting a Job",cex=1.25),
+     pch=16,col="blue")
+     
+     plot_data <- with(Job,data.frame(gre=mean(gre),
+                 years=seq(from=4,to=14,by=1),sex=mean(sex),
+                 pubs=mean(pubs)))
+plot_data$P <- predict(Job_BLR_5,newdata=plot_data,type="response")
+plot(plot_data$years,plot_data$P,type="b",main=list("Predicted Probability of Getting a Job",cex=1.5),
+     xlab=list("Years to Finish Degree",cex=1.25),ylim=c(0,1),font.axis=2,font.lab=2,font.main=4,
+     ylab=list("Probability of Getting a Job",cex=1.25),
+     pch=16,col="blue")
+
+Job_BLR_6 <- glm(Job$interview~ gre + pubs + years + sex +
+                   sex:gre + sex:pubs + sex:years,  family=binomial("logit"), data = Job)
+summary(Job_BLR_6)
+
+plot_data_men <- with(Job,data.frame(gre=mean(gre),
+                 years=mean(years),sex=1,
+                 pubs=seq(from=0,to=10,by=1)))
+plot_data_men$P <- predict(Job_BLR_6,newdata=plot_data_men,type="response")
+
+plot_data_women <- with(Job,data.frame(gre=mean(gre),
+                 years=mean(years),sex=2,
+                 pubs=seq(from=0,to=10,by=1)))
+plot_data_women$P <- predict(Job_BLR_6,newdata=plot_data_women,type="response")
+
+a <- xyplot(plot_data_men$P~plot_data_men$pubs,type="b",lty=1,
+       main=list("Probability of Getting a Job",cex=1.6),
+       xlab=list("Number of Publications",cex=1.5),
+       ylab=list("Probability of Getting a Job",cex=1.5),
+       pch=16, lwd=2,col="blue",ylim=c(0,1),cex=1.5,
+       key=list(space="right",lines=list(col=c("blue","red"), lty=c(1,2), lwd=2),
+       text=list(c("Men","Women"))))
+b <- xyplot(plot_data_women$P~plot_data_women$pubs,type="b",lty=1,
+       main=list(" ",cex=1.6),
+       xlab=list(" ",cex=1.5),
+       ylab=list(" ",cex=1.5),
+       pch=16, lwd=2,col="red",cex=1.5)
+a + as.layer(b)
+
+plot_data_men <- with(Job,data.frame(gre=mean(gre),
+                 pubs=mean(pubs),sex=1,
+                 years=seq(from=4,to=14,by=1)))
+plot_data_men$P <- predict(Job_BLR_6,newdata=plot_data_men,type="response")
+
+plot_data_women <- with(Job,data.frame(gre=mean(gre),
+                 pubs=mean(pubs),sex=2,
+                 years=seq(from=4,to=14,by=1)))
+plot_data_women$P <- predict(Job_BLR_6,newdata=plot_data_women,type="response")
+
+a <- xyplot(plot_data_men$P~plot_data_men$years,type="b",lty=1,
+       main=list("Probability of Getting a Job",cex=1.6),
+       xlab=list("Years to Finish Degree",cex=1.5),
+       ylab=list("Probability of Getting a Job",cex=1.5),
+       pch=16, lwd=2,col="blue",ylim=c(0,1),cex=1.5,
+       key=list(space="right",lines=list(col=c("blue","red"), lty=c(1,2), lwd=2),
+       text=list(c("Men","Women"))))
+b <- xyplot(plot_data_women$P~plot_data_women$years,type="b",lty=1,
+       main=list(" ",cex=1.6),
+       xlab=list(" ",cex=1.5),
+       ylab=list(" ",cex=1.5),
+       pch=16, lwd=2,col="red",cex=1.5)
+a + as.layer(b)
+
+Job_BLR_7 <- glm(Job$interview~ gre + pubs + years + sex +
+                   sex:gre + sex:pubs + sex:years+
+                   pubs:gre + pubs:years + gre:years,  family=binomial("logit"), data = Job)
+summary(Job_BLR_7)
+
+plot_data <- with(Job,data.frame(gre=mean(gre),
+                 sex=mean(sex), years= years,
+                 pubs=pubs))
+plot_data$P <- predict(Job_BLR_7,newdata=plot_data,type="response")
+           
+#Surfact plot (use lattice package)
+wireframe(P ~ pubs*years, data = plot_data,  scales = list(arrows=FALSE,cex= 1, col = "black", font = 3), screen = list(z = -245, x = -75),
+          xlab= "Number of Publications",
+       ylab="Years to Finish Degree",
+        main="Probability of Getting a Job",drape = TRUE,
+  colorkey = TRUE)
+
+Job_BLR_8 <- glm(Job$interview~ gre + pubs + years + sex +
+                   I(gre^2) + I(pubs^2) + I(years^2),  family=binomial("logit"), data = Job)
+summary(Job_BLR_8)
+
+plot_data_linear <- with(Job,data.frame(gre=mean(gre),
+                 years=mean(years),sex=mean(sex),
+                 pubs=seq(from=0,to=10,by=1)))
+plot_data_linear$P <- predict(Job_BLR_5,newdata=plot_data_linear,type="response")
+
+plot_data_quad <- with(Job,data.frame(gre=mean(gre),
+                 years=mean(years),sex=mean(sex),
+                 pubs=seq(from=0,to=10,by=1)))
+plot_data_quad$P <- predict(Job_BLR_8,newdata=plot_data_quad,type="response")
+
+a <- xyplot(plot_data_linear$P~plot_data_linear$pubs,type="b",lty=1,
+       main=list("Probability of Getting a Job",cex=1.6),
+       xlab=list("Number of Publications",cex=1.5),
+       ylab=list("Probability of Getting a Job",cex=1.5),
+       pch=16, lwd=2,col="blue",ylim=c(0,1),cex=1.5,
+       key=list(space="right",lines=list(col=c("blue","red"), lty=c(1,2), lwd=2),
+       text=list(c("Linear Model","Quadratic Model"))))
+b <- xyplot(plot_data_quad$P~plot_data_quad$pubs,type="b",lty=1,
+       main=list(" ",cex=1.6),
+       xlab=list(" ",cex=1.5),
+       ylab=list(" ",cex=1.5),
+       pch=16, lwd=2,col="red",cex=1.5)
+a + as.layer(b)
+plot_data_linear <- with(Job,data.frame(gre=mean(gre),
+                 pubs=mean(pubs),sex=mean(sex),
+                 years=seq(from=4,to=14,by=1)))
+plot_data_linear$P <- predict(Job_BLR_5,newdata=plot_data_linear,type="response")
+
+plot_data_quad <- with(Job,data.frame(gre=mean(gre),
+                 pubs=mean(pubs),sex=mean(sex),
+                 years=seq(from=4,to=14,by=1)))
+plot_data_quad$P <- predict(Job_BLR_8,newdata=plot_data_quad,type="response")
+
+a <- xyplot(plot_data_linear$P~plot_data_linear$years,type="b",lty=1,
+       main=list("Probability of Getting a Job",cex=1.6),
+       xlab=list("Years to Finish Degree",cex=1.5),
+       ylab=list("Probability of Getting a Job",cex=1.5),
+       pch=16, lwd=2,col="blue",ylim=c(0,1),cex=1.5,
+       key=list(space="right",lines=list(col=c("blue","red"), lty=c(1,2), lwd=2),
+       text=list(c("Linear Model","Quadratic Model"))))
+b <- xyplot(plot_data_quad$P~plot_data_quad$years,type="b",lty=1,
+       main=list(" ",cex=1.6),
+       xlab=list(" ",cex=1.5),
+       ylab=list(" ",cex=1.5),
+       pch=16, lwd=2,col="red",cex=1.5)
+a + as.layer(b)
