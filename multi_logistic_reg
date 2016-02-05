@@ -1,14 +1,22 @@
-The file, Set_10.csv, contains the following data from the job search study: number of
-publications while in graduate school, length of time to complete the Ph.D. (in years), sex of
-candidate (1 = men, 2 = women), quality of the degree-granting institution (1 = top-tier research
-institution, 2 = middle-tier research institution, and 3 = lower-tier research institution), and the
-outcome of the job search (1 = no interviews, 2 = interviewed but not hired, 3 = hired).
-Conduct a multinomial logistic regression on these data, predicting job search outcome from the
-other variables. Use the “no interviews” outcome as the reference for the dependent variable.
-Use the lower-tier category as the reference for the quality of the degree-granting institution
-predictor. Use women as the reference for the sex of candidate predictor.
+The file, Set_10.csv, contains the following data from the job search study: number of publications while in graduate school, length of time to complete the Ph.D. (in years), sex of candidate (1 = men, 2 = women), quality of the degree-granting institution (1 = top-tier research institution, 2 = middle-tier research institution, and 3 = lower-tier research institution), and the outcome of the job search (1 = no interviews, 2 = interviewed but not hired, 3 = hired).
+Conduct a multinomial logistic regression on these data, predicting job search outcome from the other variables. Use the “no interviews” outcome as the reference for the dependent variable. Use the lower-tier category as the reference for the quality of the degree-granting institution predictor. Use women as the reference for the sex of candidate predictor.
+Answer the following questions.
+1. What are the significant predictors when the “interviewed but not hired” outcome is compared to the reference outcome? How should the significant predictors be interpreted?
+2. What are the significant predictors when the “hired” outcome is compared to the reference outcome? How should the significant predictors be interpreted?
+3. What is the probability that a man will be hired if he completes his degree in 5 years at a third-tier institution and enters the job market with 5 publications?
+4. How do his odds of getting hired change if he gets 2 more publications but takes a year longer to finish?
 
+\documentclass{article}
+\setlength\parindent{0pt}
+\usepackage{fullpage}
+\setlength\parindent{24pt}
+\begin{document}
+\title{Homework 12\\ Psych 516}
+\author{Ying-Ting Lin}
+\date{11/23/15}
+\maketitle
 
+<<>>=
 Job <- read.table('C:/Users/Claire/Documents/Applied Multivariate Analysis/Homework12/Set_10.csv', sep=',',header=TRUE)
 library(psych)
 library(cluster)
@@ -32,7 +40,19 @@ library(mnlogit)
 library(VGAM)
 library(rms)
 library(ordinal)
+@
 
+\section{}
+Number of publications while in graduate school and length of time to complete the Ph.D. are the significant predictors. \\
+Each additional year in graduate school decreases the log odds of the ''interviewed but not hired'' outcome over no interview by 5.41. Equivalently, this is an odds ratio of 0.0707, meaning that an additional year in graudate school represents a 92.93\% decrease in the odds of ''interviewed but not hired'' over no interview at all.\\
+Each additional publication increases the log odds of the ''interviewed but not hired'' outcome over no interview by 5.65. Equivalently, this is an odds ratio of 9.9016, meaning that an additional publication represents a 890.16\% increase in the odds of ''interviewed but not hired'' over no interview at all.
+
+\section{}
+Number of publications while in graduate school and length of time to complete the Ph.D. are the significant predictors. \\
+Each additional year in graduate school decreases the log odds of getting hired over no interview by 7.05. Equivalently, this is an odds ratio of 0.0275, meaning that an additional year in graudate school represents a 97.25\% decrease in the odds of ''hired'' over no interview at all.\\
+Each additional publication increases the log odds of getting hired over no interview by 8.38.Equivalently, this is an odds ratio of 36.9395, meaning that an additional publication represents a 3593.95\% increase in the odds of ''hired'' over no interview at all.
+
+<<>>=
 Job$outcome_result[Job$outcome=="1"] <- "No Interview"
 Job$outcome_result[Job$outcome=="2"] <- "interviewed but not hired"
 Job$outcome_result[Job$outcome=="3"] <- " hired"
@@ -55,16 +75,28 @@ p <- (1 - pnorm(abs(z), 0, 1)) * 2
 z
 p
 exp(coef(Job_MLR_1))
+@
 
+
+\section{}
+The probability is 0.4092. The odds is 0.6926.
+<<>>=
 #1 = top-tier research institution, 2 = middle-tier research institution, and 3 = lower-tier research institution
 plot_data <-with(Job, data.frame(sex_result_2 ="men", Institution_result_2 = "lower-tier", years =5, pubs =5))
 P1 <- predict(Job_MLR_1, newdata = plot_data, type = "probs")
 P1
 O1 <- P1/(1-P1)
 O1
-
+@
+\section{}
+The probability becomes 0.7896. The odds becomes 3.752. This represents a 441.82\% increase in odds.
+<<>>=
 plot_data <-with(Job, data.frame(sex_result_2 ="men", Institution_result_2 = "lower-tier", years =6, pubs =7))
 P2 <-predict(Job_MLR_1, newdata = plot_data, type = "probs")
 P2
 O2 <- P2/(1-P2)
 O2
+@
+
+
+\end{document}
