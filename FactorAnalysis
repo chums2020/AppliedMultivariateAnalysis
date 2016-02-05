@@ -1,0 +1,108 @@
+The file, Set_5.csv, contains data from a study in which college students completed the NEO-PI Personality Inventory. This 240-item scale purportedly measures the Big Five personality dimensions, assumed to be fairly independent. The inventory is scored on 6 subscales per dimension, listed below. The file contains the subscale scores, rather than the individual items, which should help reduce the impact of the small sample size.
+Neuroticism: Anxiety
+Neuroticism: Angry_Hostility
+Neuroticism: Depression
+Neuroticism: Self_Consciousness
+Neuroticism: Impulsiveness
+Neuroticism: Vulnerability
+Extraversion: Warmth
+Extraversion: Gregariousness
+Extraversion: Assertiveness
+Extraversion: Activity
+Extraversion: Excitement_Seeking
+Extraversion: Positive_Emotions
+Openness: Fantasy
+Openness: Aesthetics
+Openness: Feelings
+Openness: Actions
+Openness: Ideas
+Openness: Values
+Agreeableness: Trust
+Agreeableness: Straightforwardness
+Agreeableness: Altruism
+Agreeableness: Compliance
+Agreeableness: Modesty
+Agreeableness: Tender_Mindedness
+Conscientiousness: Competence
+Conscientiousness: Order
+Conscientiousness: Dutifulness
+Conscientiousness: Achievement_Striving
+Conscientiousness: Self_Discipline
+Conscientiousness: Deliberation
+Given what you have learned to this point in the class, analyze the data in the way you think is appropriate and form conclusions about the claimed number of dimensions and their independence.
+
+\documentclass{article}
+\setlength\parindent{0pt}
+\usepackage{fullpage}
+\setlength\parindent{24pt}
+\begin{document}
+
+\title{Homework 5 \\ Psych 516}
+\author{Ying-Ting Lin}
+\date{10/4/15}
+\maketitle
+We first delete observations with missing values and screen the data to see if there is any outlier problem. The descriptive statistics show there are some variables with very high kurtosis. The Mahalanobis distance squared shows that there is a severe outlier. The observation has zero values on all subscales and doesn't make any sense in this personality dataset. After excluding this observation, we check the descriptive statistics and Mahalanobis distance again. We notice that the minimum for all variables become strictly positive, and the high kurtosis disappear. Now we proceed to further analysis.
+<<>>=
+Data <- read.table('C:/Users/Claire/Documents/Applied Multivariate Analysis/Homework 5/Set_5.csv', sep=',',header=TRUE)
+library(psych)
+library(GPArotation)
+myData <- data.frame(Data[,2:31])
+myData <- na.omit(myData)
+describe(myData)
+D2 <- mahalanobis(myData, colMeans(myData), cov(myData))
+qqplot(qchisq(ppoints(100), df = 30), D2,
+       main = expression("Q-Q plot of Mahalanobis" * ~D^2 *
+                         " vs. quantiles of" * ~ chi[30]^2))
+abline(0, 1, col = 'red')
+
+myData[which.max(D2),]
+myData <- myData[-c(which.max(D2)),]
+
+D2 <- mahalanobis(myData, colMeans(myData), cov(myData))
+qqplot(qchisq(ppoints(100), df = 30), D2,
+       main = expression("Q-Q plot of Mahalanobis" * ~D^2 *
+                         " vs. quantiles of" * ~ chi[30]^2))
+abline(0, 1, col = 'red')
+describe(myData)
+@
+
+As usual, we need to first test whether it's appropriate to do any factor analysis. The KMO index and the Bartlett's sphericity test both suggest that it is suitable to do such analysis.
+<<>>=
+R <- cor(myData, use = "complete.obs") #specifiy listwise deletion
+cortest.bartlett(R = R, n = 200)
+KMO(R)
+@
+
+The claimed number of factors is 5. To show if it is indeed the case, we plot the scree plot and include the MAP index. Both criterion suggest that the optimal number of factors is 5.
+<<>>=
+fa.parallel(R, fm = "pa", n.obs = 200)
+M <- vss(R, n = 10, fm = "pa")
+plot(M$map, type = "b", pch = 16, main = "MAP", ylab = list("MAP Value",cex = 1.5), xlab = list("Number of Factors", cex = 1.5))
+       
+@
+The unrotated solution has a messier structure that is not consistent with our assumtption that each dimension has the correponding six subscales. We conduct a varimax rotation to search for simpler interpretation. The rotated solution shows that PA1 can be interpreted as the factor for Extraversion, PA2 for Neuroticism, PA3 for Conscientiousness, PA4 for Agreeableness, and PA5 for Openness. The extracted factors can account for about 60\% of the variance in the data. We also do the varimax rotation with Kaiser normalization. The results are very similar.
+<<>>=
+unrotate <- fa(myData, nfactors=5, rotate="none", n.obs = 200, fm="pa" )
+unrotate 
+
+varimax <- fa(myData, nfactors=5, rotate="varimax", n.obs = 200,residuals=TRUE, fm="pa" )
+varimax
+
+varimax_k <- kaiser(varimax, rotate = "Varimax")
+varimax_k
+@
+Now, we want to further explore the assumption that the five dimensions are independent to each other. In order to do so, We will do oblique rotation below to search for existence of higher-order factors.\\
+The interfactor correlations are very low, except for PA1 and PA5 have a 0.25 correlation. The KMO measure says it is unaccpetable to do further factoring. In addition, the Bartlett test cannot reject the null that the interfactor correlation matrix is an identity matrix. Hence, there is no evidence for higher-order factors. The result suggests that we cannot invalidate the independence assumption for the five personality divisions.
+
+<<>>=
+oblimin <- fa(myData, nfactors = 5, rotate = "oblimin", fm = "pa", n.obs = 200, n.iter =500)
+oblimin
+oblimin_k <- kaiser(oblimin, rotate = "oblimin")
+oblimin_k 
+HR <- oblimin_k$Phi
+KMO(HR)
+cortest.bartlett(R = HR, n =200)
+@
+
+
+\end{document}
