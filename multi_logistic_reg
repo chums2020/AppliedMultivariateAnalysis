@@ -1,0 +1,70 @@
+The file, Set_10.csv, contains the following data from the job search study: number of
+publications while in graduate school, length of time to complete the Ph.D. (in years), sex of
+candidate (1 = men, 2 = women), quality of the degree-granting institution (1 = top-tier research
+institution, 2 = middle-tier research institution, and 3 = lower-tier research institution), and the
+outcome of the job search (1 = no interviews, 2 = interviewed but not hired, 3 = hired).
+Conduct a multinomial logistic regression on these data, predicting job search outcome from the
+other variables. Use the “no interviews” outcome as the reference for the dependent variable.
+Use the lower-tier category as the reference for the quality of the degree-granting institution
+predictor. Use women as the reference for the sex of candidate predictor.
+
+
+Job <- read.table('C:/Users/Claire/Documents/Applied Multivariate Analysis/Homework12/Set_10.csv', sep=',',header=TRUE)
+library(psych)
+library(cluster)
+library(sciplot)
+library(ggplot2)
+library(DiscriMiner)
+library(candisc)
+library(sciplot)
+library(MASS)
+library(MVN)
+library(ade4)
+library(biotools)
+library(klaR)
+library(car)
+library(LogisticDx)
+library(lattice)
+library(latticeExtra)
+library(ROCR)
+library(nnet)
+library(mnlogit)
+library(VGAM)
+library(rms)
+library(ordinal)
+
+Job$outcome_result[Job$outcome=="1"] <- "No Interview"
+Job$outcome_result[Job$outcome=="2"] <- "interviewed but not hired"
+Job$outcome_result[Job$outcome=="3"] <- " hired"
+Job$outcome_result_2 <- relevel(as.factor(Job$outcome_result), ref = "No Interview")
+
+Job$sex_result[Job$sex=="1"] <- "men"
+Job$sex_result[Job$sex=="2"] <- "women"
+Job$sex_result_2 <- relevel(as.factor(Job$sex_result), ref = "women")
+
+Job$Institution_result[Job$Institution=="1"] <- "top-tier"
+Job$Institution_result[Job$Institution=="2"] <- "middle-tier"
+Job$Institution_result[Job$Institution=="3"] <- "lower-tier"
+Job$Institution_result_2 <- relevel(as.factor(Job$Institution_result), ref = "lower-tier")
+
+Job_MLR_1 <- multinom(Job$outcome_result_2 ~ Institution_result_2 + sex_result_2 + years + pubs, data = Job)
+summary(Job_MLR_1)
+
+z <- summary(Job_MLR_1)$coefficients/summary(Job_MLR_1)$standard.errors
+p <- (1 - pnorm(abs(z), 0, 1)) * 2
+z
+p
+exp(coef(Job_MLR_1))
+
+#1 = top-tier research institution, 2 = middle-tier research institution, and 3 = lower-tier research institution
+plot_data <-with(Job, data.frame(sex_result_2 ="men", Institution_result_2 = "lower-tier", years =5, pubs =5))
+P1 <- predict(Job_MLR_1, newdata = plot_data, type = "probs")
+P1
+O1 <- P1/(1-P1)
+O1
+
+plot_data <-with(Job, data.frame(sex_result_2 ="men", Institution_result_2 = "lower-tier", years =6, pubs =7))
+P2 <-predict(Job_MLR_1, newdata = plot_data, type = "probs")
+P2
+O2 <- P2/(1-P2)
+O2
