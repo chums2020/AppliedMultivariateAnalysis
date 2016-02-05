@@ -1,0 +1,123 @@
+\documentclass{article}
+\setlength\parindent{0pt}
+\usepackage{fullpage}
+\setlength\parindent{24pt}
+\begin{document}
+\title{Homework 9\\ Psych 516}
+\author{Ying-Ting Lin}
+\date{11/2/15}
+\maketitle
+
+<<>>=
+Data <- read.table('C:/Users/Claire/Documents/Applied Multivariate Analysis/Homework9/Set_7.csv', sep=',',header=TRUE)
+library(psych)
+library(cluster)
+library(sciplot)
+library(ggplot2)
+library(sciplot)
+
+#Standardize
+myData <- as.data.frame(scale(Data[,2:5]))
+distance <- dist(myData, method = "euclidean") 
+@
+
+\section{}
+From the cluster dendogram, the number of clusters can be 2 to 8. We choose 4 clusters and then proceed. 
+<<>>=
+wards <- hclust(distance, method = "ward.D2")
+plot(wards, cex = 0.8, col = "blue", xlab = list("Data_Dist Object"), ylab = list("Height"), main = list("Cluster Dendogram"))
+rect.hclust(wards , k = 4, border = "red")
+@
+\section{}
+We plot the bar graph with 95\% confidence interval for each variable's cluster mean. 
+<<>>=
+wards_cluster <- as.data.frame(cutree(wards, k =4))
+names(wards_cluster) <- c("Cluster_wards")
+myData_new <- as.data.frame(cbind(myData, wards_cluster))
+
+par(mfrow = c(2,2))
+bargraph.CI(myData_new$Cluster_wards, myData_new$age, xlab = "Cluster", ylab = "Age", cex.lab = 1.5, cex.names = 1.25, space = 0)
+bargraph.CI(myData_new$Cluster_wards, myData_new$memory_span, xlab = "Cluster", ylab = "Memory Span", cex.lab = 1.5, cex.names = 1.25, space = 0)
+bargraph.CI(myData_new$Cluster_wards, myData_new$iq , xlab = "Cluster", ylab = "IQ", cex.lab = 1.5, cex.names = 1.25, space = 0)
+bargraph.CI(myData_new$Cluster_wards, myData_new$reading_adjusted , xlab = "Cluster", ylab = "Reading adjusted", cex.lab = 1.5, cex.names = 1.25, space = 0)
+
+@
+\section{}
+We conduct a K-means clustering with 4 clusters. The bar graphs for the new K-means clusters are also presented. 
+<<>>=
+set.seed(1)
+K <- kmeans(myData, centers = 4,nstart = 1)
+K_cluster <- as.data.frame(K$cluster)
+names(K_cluster) <- c("Cluster_K")
+myData_new_K <- as.data.frame(cbind(myData, K_cluster))
+
+par(mfrow = c(2,2))
+bargraph.CI(myData_new_K$Cluster_K, myData_new_K$age, xlab = "Cluster", ylab = "Age", cex.lab = 1.5, cex.names = 1.25, space = 0)
+bargraph.CI(myData_new_K$Cluster_K, myData_new_K$memory_span, xlab = "Cluster", ylab = "Memory Span", cex.lab = 1.5, cex.names = 1.25, space = 0)
+bargraph.CI(myData_new_K$Cluster_K, myData_new_K$iq , xlab = "Cluster", ylab = "IQ", cex.lab = 1.5, cex.names = 1.25, space = 0)
+bargraph.CI(myData_new_K$Cluster_K, myData_new_K$reading_adjusted , xlab = "Cluster", ylab = "Reading adjusted", cex.lab = 1.5, cex.names = 1.25, space = 0)
+@
+\section{}
+From the cross-classification table, we see that the two procedures identify roughly the same clusters, with different ordering and slight disagreement. Specifically, cluster 1 from the Ward's method corresponds to cluster 4 from K-means. Similarly, we can identify Cluster 2 to cluster 2, cluster 3 to cluster 1, and cluster 4 to cluster 3. \\
+\indent
+We also list the children who are classified differently by the two prcedures, according to our matches of clusters. 
+
+<<>>=
+#Provide a cross-classification table. Do the two procedures identify the same clusters? If there is disagreement, indicate the children who are classified differently by the two procedures.
+combine <- as.data.frame(cbind(myData, wards_cluster, K_cluster))
+table(combine$Cluster_wards, combine$Cluster_K)
+combine[combine$Cluster_wards==1 & combine$Cluster_K !=4, ]
+combine[combine$Cluster_wards==2 & combine$Cluster_K !=2, ]
+combine[combine$Cluster_wards==3 & combine$Cluster_K !=1, ]
+combine[combine$Cluster_wards==4 & combine$Cluster_K !=3, ]
+
+@
+
+\section{}
+After sorting, the clusters produced by Ward's procedures are still the same, except that the ordering of the clusters changed. Now, the clusters are ordered by IQ, with cluster 1 having the lowest mean in IQ and cluster 4 having the highest mean in IQ. \\
+Now, the K-means procedure do not produce the same clusters that is found before the data are sorted, but they are identical with the clusters generated from the Ward's method.
+<<>>=
+attach(myData)
+sort_Data <- myData[order(iq),]  
+detach(myData)
+sort_distance <- dist(sort_Data, method = "euclidean") 
+
+#Ward's
+wards <- hclust(sort_distance, method = "ward.D2")
+par(mfrow = c(1,1))
+plot(wards, cex = 0.8, col = "blue", xlab = list("Data_Dist Object"), ylab = list("Height"), main = list("Cluster Dendogram"))
+rect.hclust(wards , k = 4, border = "red")
+
+wards_cluster <- as.data.frame(cutree(wards, k =4))
+names(wards_cluster) <- c("Cluster_wards")
+sort_Data_new <- as.data.frame(cbind(sort_Data, wards_cluster))
+
+par(mfrow = c(2,2))
+bargraph.CI(sort_Data_new$Cluster_wards, sort_Data_new$age, xlab = "Cluster", ylab = "Age", cex.lab = 1.5, cex.names = 1.25, space = 0)
+bargraph.CI(sort_Data_new$Cluster_wards, sort_Data_new$memory_span, xlab = "Cluster", ylab = "Memory Span", cex.lab = 1.5, cex.names = 1.25, space = 0)
+bargraph.CI(sort_Data_new$Cluster_wards, sort_Data_new$iq , xlab = "Cluster", ylab = "IQ", cex.lab = 1.5, cex.names = 1.25, space = 0)
+bargraph.CI(sort_Data_new$Cluster_wards, sort_Data_new$reading_adjusted , xlab = "Cluster", ylab = "Reading adjusted", cex.lab = 1.5, cex.names = 1.25, space = 0)
+@
+
+
+<<>>=
+#K-means
+set.seed(1)
+K <- kmeans(sort_Data, centers = 4)
+K_cluster <- as.data.frame(K$cluster)
+names(K_cluster) <- c("Cluster_K")
+sort_Data_new_K <- as.data.frame(cbind(sort_Data , K_cluster))
+
+par(mfrow = c(2,2))
+bargraph.CI(sort_Data_new_K$Cluster_K, sort_Data_new_K$age, xlab = "Cluster", ylab = "Age", cex.lab = 1.5, cex.names = 1.25, space = 0)
+bargraph.CI(sort_Data_new_K$Cluster_K, sort_Data_new_K$memory_span, xlab = "Cluster", ylab = "Memory Span", cex.lab = 1.5, cex.names = 1.25, space = 0)
+bargraph.CI(sort_Data_new_K$Cluster_K, sort_Data_new_K$iq , xlab = "Cluster", ylab = "IQ", cex.lab = 1.5, cex.names = 1.25, space = 0)
+bargraph.CI(sort_Data_new_K$Cluster_K, sort_Data_new_K$reading_adjusted , xlab = "Cluster", ylab = "Reading adjusted", cex.lab = 1.5, cex.names = 1.25, space = 0)
+
+#Cross-tabulation
+combine <- as.data.frame(cbind(sort_Data, wards_cluster, K_cluster))
+table(combine$Cluster_wards, combine$Cluster_K)
+
+@
+
+\end{document}
